@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Canvas tutorial | collisions</title>
   <style>
+    #canvascontainer {
+      text-align: center;
+    }
+
     #canvas {
       outline: 1px solid red;
       display: block;
@@ -17,7 +21,14 @@
 <body>
   <div id="canvascontainer">
     <canvas id="canvas"></canvas>
-
+    <label for="collision-type">Collision type:</label>
+    <select name="collision-type">
+      <option value="point_circle" selected>Point - Circle</option>
+      <option value="circle_circle">Circle - Circle</option>
+      <option value="point_rectangle">Point - Rectangle</option>
+      <option value="rectangle_rectangle">Rectangle - Rectangle</option>
+      <option value="circle_rectangle">Circle - Rectangle</option>
+    </select>
   </div>
   <script src="collision.js"></script>
 </body>

@@ -1,5 +1,7 @@
 const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("canvas"));
 const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext("2d"));
+const collisionSelectField = /** @type {HTMLSelectElement} */ (document.querySelector("select[name='collision-type']"));
+
 canvas.width = 500;
 canvas.height = 500;
 
@@ -42,7 +44,21 @@ const centerRectangle = {
   color: "#007cff"
 }
 
-function updateRectanglePoint() {
+function checkPointCircleCollision(point, circle) {
+  const { dx, dy } = pointDifference(point, circle);
+  const dist = pointsDistance(dx, dy)
+  return dist <= circle.r;
+}
+
+function pointDifference(point1, point2) {
+  return { dx: point1.x - point2.x, dy: point1.y - point2.y }
+}
+
+function pointsDistance(dx, dy) {
+  return Math.sqrt((dx ** 2) + (dy ** 2))
+}
+
+function updatePointRectangle() {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
   centerRectangle.color = checkPointRectangleCollision(mousePoint, centerRectangle) ? "orange" : "#007cff"
@@ -60,12 +76,19 @@ function updateRectangles() {
   drawRectangle(mouseRectangle);
 }
 
+function updatePointCircle() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  centerCircle.color = checkPointCircleCollision(mousePoint, centerCircle) ? "orange" : "#007cff";
+
+  drawCircle(centerCircle);
+  drawPoint(mousePoint);
+}
+
 function updateCircles() {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-  centerCircle.color = "#007cff";
-  if (checkCircleCollision(centerCircle, mouseCircle))
-    centerCircle.color = "orange";
+  centerCircle.color = checkCircleCollision(centerCircle, mouseCircle) ? "orange" : "#007cff";
 
   drawCircle(centerCircle);
   drawCircle(mouseCircle);
@@ -104,7 +127,7 @@ function drawRectangle({ x, y, w, h, color }) {
 function checkCircleCollision(circle1, circle2) {
   const distX = circle1.x - circle2.x;
   const distY = circle1.y - circle2.y;
-  const distance = Math.sqrt((distX * distX) + (distY * distY));
+  const distance = Math.sqrt((distX ** 2) + (distY ** 2));
 
   return distance <= (circle1.r + circle2.r);
 }
@@ -117,15 +140,6 @@ function getRectangleEdges({ x, y, w, h }) {
     bottomEdge: y + h
   }
 }
-
-// function getRectangleVertices({ x, y, w, h }) {
-//   return {
-//     topLeft: { x, y },
-//     topRight: { x: x + w, y },
-//     bottomLeft: { x, y: y + h },
-//     bottomRight: { x: x + w, y: y + h }
-//   }
-// }
 
 function checkPointRectangleCollision(point, rectangle) {
   const {
@@ -172,38 +186,52 @@ function checkCircleRectangleCollision(circle, rectangle) {
   return distance < circle.r;
 }
 
+function pointCircleExample(e) {
+  mousePoint.x = e?.clientX - canvas.offsetLeft;
+  mousePoint.y = e?.clientY - canvas.offsetTop;
+  updatePointCircle();
+}
+
 function circlesExample(e) {
-  mouseCircle.x = e.clientX - canvas.offsetLeft;
-  mouseCircle.y = e.clientY - canvas.offsetTop;
+  mouseCircle.x = e?.clientX - canvas.offsetLeft;
+  mouseCircle.y = e?.clientY - canvas.offsetTop;
   updateCircles();
 }
 
 function pointRectangleExample(e) {
-  mousePoint.x = e.clientX - canvas.offsetLeft;
-  mousePoint.y = e.clientY - canvas.offsetTop;
-  updateRectanglePoint();
+  mousePoint.x = e?.clientX - canvas.offsetLeft;
+  mousePoint.y = e?.clientY - canvas.offsetTop;
+  updatePointRectangle();
 }
 
 function rectanglesExample(e) {
-  mouseRectangle.x = e.clientX - (mouseRectangle.w / 2) - canvas.offsetLeft;
-  mouseRectangle.y = e.clientY - (mouseRectangle.h / 2) - canvas.offsetTop;
+  mouseRectangle.x = e?.clientX - (mouseRectangle.w / 2) - canvas.offsetLeft;
+  mouseRectangle.y = e?.clientY - (mouseRectangle.h / 2) - canvas.offsetTop;
   updateRectangles();
 }
 
 function circleRectangleExample(e) {
-  mouseCircle.x = e.clientX - canvas.offsetLeft;
-  mouseCircle.y = e.clientY - canvas.offsetTop;
+  mouseCircle.x = e?.clientX - canvas.offsetLeft;
+  mouseCircle.y = e?.clientY - canvas.offsetTop;
   updateCircleRectangle();
 }
 
-// canvas.addEventListener("mousemove", circlesExample);
-// circlesExample();
+const collisionTypes = {
+  "point_circle": pointCircleExample,
+  "circle_circle": circlesExample,
+  "point_rectangle": pointRectangleExample,
+  "rectangle_rectangle": rectanglesExample,
+  "circle_rectangle": circleRectangleExample,
+}
+let updateFunction = collisionTypes[collisionSelectField.value];
+updateFunction();
+canvas.addEventListener("mousemove", updateFunction);
 
-// canvas.addEventListener("mousemove", pointRectangleExample);
-// pointRectangleExample();
+collisionSelectField.addEventListener("change", changeCollisionType)
 
-// canvas.addEventListener("mousemove", rectanglesExample);
-// rectanglesExample();
-
-canvas.addEventListener("mousemove", circleRectangleExample);
-updateCircleRectangle();
+function changeCollisionType(e) {
+  updateFunction = collisionTypes[e.target.value];
+  updateFunction();
+  canvas.removeEventListener("mousemove", updateFunction)
+  canvas.addEventListener("mousemove", updateFunction)
+}
