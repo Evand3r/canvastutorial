@@ -2,8 +2,8 @@
 const canvas = /**@type {HTMLCanvasElement} */ document.querySelector('#canvas');
 const ctx = /** @type {CanvasRenderingContext2D} */ canvas.getContext("2d");
 
-const canvas_width = canvas.width;
-const canvas_height = canvas.height;
+const canvas_width = canvas.width = 500;
+const canvas_height = canvas.height = 500;
 
 let gameLoop;
 let gameSpeed = 80; //fps(?
